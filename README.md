@@ -1,0 +1,2 @@
+# palworld-sever
+palworld sever
