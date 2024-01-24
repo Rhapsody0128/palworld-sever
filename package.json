@@ -1,0 +1,26 @@
+{
+  "name": "palworld-server",
+  "version": "1.0.0",
+  "description": "palworld sever",
+  "main": "index.js",
+  "dependencies": {
+    "child_process": "^1.0.2",
+    "compressing": "^1.10.0",
+    "cross-env": "^7.0.3",
+    "cross-spawn": "^7.0.3",
+    "dotenv": "^16.3.2",
+    "https": "^1.0.0",
+    "isexe": "^2.0.0",
+    "path-key": "^3.1.1",
+    "shebang-command": "^2.0.0",
+    "shebang-regex": "^3.0.0",
+    "which": "^2.0.2"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "install": "node install.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
