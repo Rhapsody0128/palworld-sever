@@ -22,7 +22,7 @@ const serverPath = path.join(__dirname, './server')
 app.use(express.static(serverPath));
 
 app.listen(process.env.SERVER_PORT, () => {
-  console.log(`前端伺服器已啟動:\n${process.env.IP}:${process.env.SERVER_PORT}`);
+  console.log(`前端伺服器已啟動:\nhttp://${process.env.IP}:${process.env.SERVER_PORT}`);
 });
 
 // 後端server
@@ -40,9 +40,11 @@ app.get('/serverStatus', async (req, res) => {
   try {
     if(childProcess){
       res.send({ serverStatus: true })
+      console.log("伺服器狀態確認: 開啟");
       res.status(200)
     }else{
       res.send({ serverStatus: false })
+      console.log("伺服器狀態確認: 關閉");
       res.status(200)
     }
   } catch (error) {
@@ -71,6 +73,7 @@ app.post('/startServer', async (req, res) => {
         childProcess = null;
       });
       res.status(200).send({ serverStatus: true });
+      console.log("伺服器已開啟");
     }else{
       res.status(200).send({ serverStatus: true, message:'已經開啟中' });
     }
@@ -93,6 +96,7 @@ app.post('/closeServer', async (req, res) => {
         // 將 childProcess 設置為 null，表示它已經被關閉
         childProcess = null;
         res.status(200).send({ serverStatus: false });
+        console.log("伺服器已關閉");
       });
     } else {
       // 如果 childProcess 為 null，表示已經被關閉
@@ -107,7 +111,7 @@ app.post('/closeServer', async (req, res) => {
 
 
 app.listen(process.env.APP_PORT, () => {
-  console.log(`後端伺服器已啟動:\n${process.env.IP}:${process.env.APP_PORT}`)
+  console.log(`後端伺服器已啟動:\nhttp://${process.env.IP}:${process.env.APP_PORT}`)
 })
 
 
