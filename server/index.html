@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>帕魯簡單操作server</title>
+</head>
+<body>
+  <h1>伺服器目前狀態:
+    <span id="serverStatus"></span>
+  </h1>
+  <button onclick="startServer()">啟動伺服器</button>
+  <button onclick="closeServer()">關閉伺服器</button>
+</body>
+</html>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js' integrity='sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==' crossorigin='anonymous'></script>
+<script>
+  let baseUrl = `http://${location.hostname}:8212`
+
+  function getServerStatus(){
+    $.get(baseUrl + "/serverStatus", function(res){
+      if(res.serverStatus){
+        $("#serverStatus").text('開啟')
+      }else{
+        $("#serverStatus").text('關閉')
+      }
+    }).fail(error=>{
+      alert("error")
+    })
+  }
+
+  getServerStatus()
+
+  function startServer(){
+    $.post(baseUrl + "/startServer", function(res){
+      if(res.message){
+        alert(res.message)
+      }else{
+        getServerStatus()
+      }
+    }).fail(error=>{
+      alert("error")
+    })
+  }
+  function closeServer(){
+    $.post(baseUrl + "/closeServer", function(res){
+      if(res.message){
+        alert(res.message)
+      }else{
+        getServerStatus()
+      }
+    }).fail(error=>{
+      alert("error")
+    })
+  }
+</script>

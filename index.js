@@ -1,21 +1,114 @@
-const https = require('https');
 const fs = require('fs');
+const path = require('path');
+const express = require('express')
+const bodyParser = require('body-parser')
+const dotenv = require('dotenv')
+const cors = require('cors');
+const { spawn } = require('child_process');
+const treeKill = require('tree-kill');
 
-const fileUrl = 'https://drive.usercontent.google.com/download?id=1w1qDCzA1vGkwfEFsv7brThzNhwhWSB7U&export=download&authuser=0&confirm=t&uuid=f0a975e3-98e4-43bb-bb8b-7a22b56b1488&at=APZUnTVnv2Hl_Beol3YXZZ-MqO6-%3A1706000044408';
-const destinationPath = 'Palworld/result.zip'; // 設定檔案要保存的路徑
+dotenv.config()
 
-const file = fs.createWriteStream(destinationPath);
+let childProcess = null
 
-https.get(fileUrl, (response) => {
-  response.pipe(file);
 
-  file.on('finish', () => {
-    file.close(() => {
-      console.log('File downloaded successfully.');
-    });
-  });
-}).on('error', (err) => {
-  fs.unlink(destinationPath, () => {
-    console.error(`Error downloading file: ${err.message}`);
-  });
+const app = express()
+
+
+// 前端server
+
+const serverPath = path.join(__dirname, './server')
+
+app.use(express.static(serverPath));
+
+app.listen(process.env.SERVER_PORT, () => {
+  console.log(`前端伺服器已啟動:\n${process.env.IP}:${process.env.SERVER_PORT}`);
 });
+
+// 後端server
+
+app.use(bodyParser.json())
+
+app.use(cors({
+  origin (origin, callback) {
+    callback(null, true)
+  },
+  credentials: true
+}))
+
+app.get('/serverStatus', async (req, res) => {
+  try {
+    if(childProcess){
+      res.send({ serverStatus: true })
+      res.status(200)
+    }else{
+      res.send({ serverStatus: false })
+      res.status(200)
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(404)
+  }
+
+})
+
+app.post('/startServer', async (req, res) => {
+  try {
+    if(!childProcess){
+      const command = 'PalServer.exe';
+      const options = {
+        cwd: process.env.PALWORLD_SERVER_DIR, // 設置當前工作目錄
+        shell: true, // 啟用 shell，這樣可以使用 "cd" 命令
+      };
+      childProcess = spawn(command, [], options);
+      childProcess.stdout.on('data', (data) => {
+        console.log(`stdout: ${data}`);
+      });
+      childProcess.stderr.on('data', (data) => {
+        console.error(`stderr: ${data}`);
+      });
+      childProcess.on('close', (code) => {
+        childProcess = null;
+      });
+      res.status(200).send({ serverStatus: true });
+    }else{
+      res.status(200).send({ serverStatus: true, message:'已經開啟中' });
+    }
+  } catch (error) {
+    res.status(404).send({ result: "ERROR" })
+  }
+})
+
+app.post('/closeServer', async (req, res) => {
+  try {
+    if (childProcess) {
+      // 使用 tree-kill 來遞歸終止所有子進程
+      treeKill(childProcess.pid, 'SIGTERM', (err) => {
+        if (err) {
+          console.error(err);
+          res.status(404).send({ result: "ERROR" });
+          return;
+        }
+
+        // 將 childProcess 設置為 null，表示它已經被關閉
+        childProcess = null;
+        res.status(200).send({ serverStatus: false });
+      });
+    } else {
+      // 如果 childProcess 為 null，表示已經被關閉
+      res.status(200).send({ serverStatus: false, message:'已經關閉中' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(404).send({ result: "ERROR" });
+  }
+});
+
+
+
+app.listen(process.env.APP_PORT, () => {
+  console.log(`後端伺服器已啟動:\n${process.env.IP}:${process.env.APP_PORT}`)
+})
+
+
+
